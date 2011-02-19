@@ -52,3 +52,4 @@ http://tom.preston-werner.com/2009/05/19/the-git-parable.html
 https://github.com/AlexZeitler/gitcheatsheet/raw/master/gitcheatsheet.pdf
 http://help.github.com/git-cheat-sheets/
 http://progit.org/book/
+http://thestartupfoundry.com/2011/02/18/startup-toolbox-a-resource-for-startups/
