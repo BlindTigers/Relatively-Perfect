@@ -1,0 +1,20 @@
+FrontEnd: (anything visual)
+Toby
+Josh
+Mike
+
+BackEnd:
+Mtekk
+Mitch
+Kiko
+
+
+What we want done by next meeting:
+FrontEnd:
+Admin UX Design
+Admin UI Design
+
+
+
+BackEnd:
+

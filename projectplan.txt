@@ -32,6 +32,7 @@ Fields
   Location Phone Number
   Location URL
   Event Type ie Conference, Performance, Meeting, Training, etc
+  Cost
 
 
 Add Ons
