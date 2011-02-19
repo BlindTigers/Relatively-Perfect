@@ -86,8 +86,6 @@ class RelativelyPerfect extends mtekk_admin
 	{
 		//We set the plugin basename here, could manually set it, but this is for demonstration purposes
 		$this->plugin_basename = plugin_basename(__FILE__);
-		//We'll include a defualt style that everyone can enjoy
-		add_action('wp_head', array($this, 'head_style'));
 		//We're going to make sure we load the parent's constructor
 		parent::__construct();
 	}
@@ -104,22 +102,8 @@ class RelativelyPerfect extends mtekk_admin
 		parent::init();
 		//We can not synchronize our database options untill after the parent init runs (the reset routine must run first if it needs to)
 		$this->opt = $this->get_option('llynx_options');
-		$this->llynx_scrape->opt = $this->opt;
-		//If we are emulating the user's browser, we should update our user agent accordingly
-		if($this->opt['curl_embrowser'])
-		{
-			$this->llynx_scrape->opt['curl_agent'] = $_SERVER['HTTP_USER_AGENT'];
-		}
 		//Add javascript enqeueing callback
 		add_action('wp_print_scripts', array($this, 'javascript'));
-		add_action('media_buttons_context', array($this, 'media_buttons_context'));
-		add_action('media_upload_wp_lynx', array($this, 'media_upload'));
-		add_filter('tiny_mce_before_init', array($this, 'add_editor_style'));
-		if(current_user_can('edit_posts') && current_user_can('edit_pages'))
-		{
-			add_filter('mce_external_plugins', array($this, 'add_mce_plugin'));
-			add_filter('mce_buttons', array($this, 'add_mce_button'));
-		}
 	}
 	/**
 	 * security
@@ -267,26 +251,6 @@ class RelativelyPerfect extends mtekk_admin
 .llynx_thumb{height:138px;overflow:hidden;border-bottom:1px solid #dfdfdf;margin-bottom:5px;}
 </style>
 		<?php
-	}
-	function head_style()
-	{
-		//Sync our options
-		$this->opt = $this->get_option('llynx_options');
-		//Only print if enabled
-		if($this->opt['global_style'])
-		{
-		?>
-<style type="text/css">
-/*WP Lynx Styles*/
-.llynx_print{margin:10px;padding:5px;display:block;float:left;border:1px solid #999;}
-.llynx_print img{padding:5px;border:none;max-width:20%;float:left;}
-.llynx_text{float:right;width:70%;}
-.llynx_text a{text-decoration:none;font-weight:bolder;font-size:1em;float:left;width:100%;}
-.llynx_text small{padding:3px 0;float:left;width:100%;}
-.llynx_text span{float:left;width:100%;}
-</style>
-		<?php
-		}
 	}
 	/**
 	 * javascript
