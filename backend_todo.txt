@@ -1,0 +1,4 @@
+Make it run without breaking.
+Design the data models
+Layout the classes/models
+strip out old options that we done need
