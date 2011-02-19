@@ -30,7 +30,7 @@ if(version_compare(PHP_VERSION, '5.2.0', '<'))
 	//Silently deactivate plugin, keeps admin usable
 	deactivate_plugins(plugin_basename(__FILE__), true);
 	//Spit out die messages
-	wp_die(sprintf(__('Your PHP version is too old, please upgrade to a newer version. Your version is %s, this plugin requires %s', 'breadcrumb_navxt'), phpversion(), '5.2.0'));
+	wp_die(sprintf(__('Your PHP version is too old, please upgrade to a newer version. Your version is %s, this plugin requires %s', 'rel_perf'), phpversion(), '5.2.0'));
 }
 //Include admin base class
 if(!class_exists('mtekk_admin'))
@@ -46,8 +46,8 @@ class RelativelyPerfect extends mtekk_admin
 	protected $full_name = 'Relatively Perfect Settings';
 	protected $short_name = 'Relatively Perfect';
 	protected $access_level = 'manage_options';
-	protected $identifier = 'wp_lynx';
-	protected $unique_prefix = 'llynx';
+	protected $identifier = 'rel_perf';
+	protected $unique_prefix = 'btrp';
 	protected $plugin_basename = '';
 	protected $llynx_scrape;
 	protected $opt = array(
@@ -101,7 +101,7 @@ class RelativelyPerfect extends mtekk_admin
 		//We're going to make sure we run the parent's version of this function as well
 		parent::init();
 		//We can not synchronize our database options untill after the parent init runs (the reset routine must run first if it needs to)
-		$this->opt = $this->get_option('llynx_options');
+		$this->opt = get_option($this->unique_prefix . '_options');
 		//Add javascript enqeueing callback
 		add_action('wp_print_scripts', array($this, 'javascript'));
 	}
@@ -115,7 +115,7 @@ class RelativelyPerfect extends mtekk_admin
 		//If the user can not manage options we will die on them
 		if(!current_user_can($this->access_level))
 		{
-			wp_die(__('Insufficient privileges to proceed.', 'wp_lynx'));
+			wp_die(__('Insufficient privileges to proceed.', 'rel_perf'));
 		}
 	}
 	/** 
@@ -126,28 +126,28 @@ class RelativelyPerfect extends mtekk_admin
 		//Call our little security function
 		$this->security();
 		//Try retrieving the options from the database
-		$opts = $this->get_option('llynx_version');
+		$opts = get_option($this->unique_prefix . '_version');
 		//If there are no settings, copy over the default settings
 		if(!is_array($opts))
 		{
 			//Add the options
-			$this->add_option('llynx_options', $opts);
-			$this->add_option('llynx_options_bk', $opts, false);
+			add_option($this->unique_prefix . '_options', $opts);
+			add_option($this->unique_prefix . '_options_bk', $opts, false);
 			//Add the version, no need to autoload the db version
-			$this->add_option('llynx_version', $this->version, false);
+			add_option($this->unique_prefix . '_version', $this->version, false);
 		}
 		else
 		{
 			//Retrieve the database version
-			$db_version = $this->get_option('llynx_version');
+			$db_version = get_option($this->unique_prefix . '_version');
 			if($this->version !== $db_version)
 			{
 				//Run the settings update script
 				$this->opts_upgrade($opts, $db_version);
 				//Always have to update the version
-				$this->update_option('llynx_version', $this->version);
+				update_option($this->unique_prefix . '_version', $this->version);
 				//Store the options
-				$this->update_option('llynx_options', $this->opt);
+				update_option($this->unique_prefix . '_options', $this->opt);
 			}
 		}
 	}
@@ -183,13 +183,13 @@ class RelativelyPerfect extends mtekk_admin
 		//Do some security related thigns as we are not using the normal WP settings API
 		$this->security();
 		//Do a nonce check, prevent malicious link/form problems
-		check_admin_referer('llynx_options-options');
+		check_admin_referer($this->unique_prefix . '_options-options');
 		//Update local options from database
-		$this->opt = $this->get_option('llynx_options');
+		$this->opt = get_option($this->unique_prefix . '_options');
 		//Update our backup options
-		$this->update_option('llynx_options_bk', $this->opt);
+		update_option($this->unique_prefix . '_options_bk', $this->opt);
 		//Grab our incomming array (the data is dirty)
-		$input = $_POST['llynx_options'];
+		$input = $_POST[$this->unique_prefix . '_options'];
 		//Loop through all of the existing options (avoids random setting injection)
 		foreach($this->opt as $option => $value)
 		{
@@ -220,7 +220,7 @@ class RelativelyPerfect extends mtekk_admin
 			}
 		}
 		//Commit the option changes
-		$this->update_option('llynx_options', $this->opt);
+		update_option($this->unique_prefix . '_options', $this->opt);
 		//Check if known settings match attempted save
 		if(count(array_diff_key($input, $this->opt)) == 0)
 		{
@@ -272,8 +272,8 @@ class RelativelyPerfect extends mtekk_admin
 	 */
 	protected function _get_help_text()
 	{
-		return sprintf(__('Tips for the settings are located below select options. Please refer to the %sdocumentation%s for more information.', 'wp_lynx'), 
-			'<a title="' . __('Go to the Links Lynx online documentation', 'wp_lynx') . '" href="http://mtekk.us/code/wp-lynx/wp-lynx-doc/">', '</a>') .
+		return sprintf(__('Tips for the settings are located below select options. Please refer to the %sdocumentation%s for more information.', 'rel_perf'), 
+			'<a title="' . __('Go to the Links Lynx online documentation', 'rel_perf') . '" href="http://mtekk.us/code/wp-lynx/wp-lynx-doc/">', '</a>') .
 			sprintf(__('If you think you have found a bug, please include your WordPress version and details on how to reporduce the bug when you %sreport the issue%s.', $this->identifier),'<a title="' . __('Go to the WP Lynx support post for your version.', $this->identifier) . '" href="http://mtekk.us/archives/wordpress/plugins-wordpress/wp-lynx-' . $this->version . '/#respond">', '</a>') . '</p>';
 	}
 	/**
@@ -344,7 +344,7 @@ class RelativelyPerfect extends mtekk_admin
 		);
 		jQuery('#screen-meta-links').append(
 				'<div id="screen-options-link-wrap" class="hide-if-no-js screen-meta-toggle">' +
-				'<a class="show-settings" id="show-settings-link" href="#screen-options"><?php printf('%s/%s/%s', __('Import', 'wp_lynx'), __('Export', 'wp_lynx'), __('Reset', 'wp_lynx')); ?></a>' + 
+				'<a class="show-settings" id="show-settings-link" href="#screen-options"><?php printf('%s/%s/%s', __('Import', 'rel_perf'), __('Export', 'rel_perf'), __('Reset', 'rel_perf')); ?></a>' + 
 				'</div>'
 		);
 		var code = jQuery('#llynx_import_export_relocate').html();
@@ -374,133 +374,82 @@ class RelativelyPerfect extends mtekk_admin
 			//Too late to use normal hook, directly display the message
 			$this->message();
 		}
-		$this->version_check($this->get_option($this->unique_prefix . '_version'));
+		$this->version_check(get_option($this->unique_prefix . '_version'));
 		?>
-		<div class="wrap"><h2><?php _e('WP Lynx Settings', 'wp_lynx'); ?></h2>		
+		<div class="wrap"><h2><?php _e('Relatively Perfect Settings', 'rel_perf'); ?></h2>		
 		<p<?php if($this->_has_contextual_help): ?> class="hide-if-js"<?php endif; ?>><?php 
 			print $this->_get_help_text();			 
 		?></p>
-		<form action="options-general.php?page=wp_lynx" method="post" id="llynx-options">
-			<?php settings_fields('llynx_options');?>
+		<form action="options-general.php?page=rel_perf" method="post" id="<?php echo $this->unique_prefix;?>-options">
+			<?php settings_fields($this->unique_prefix . '_options');?>
 			<div id="hasadmintabs">
-			<fieldset id="general" class="llynx_options">
-				<h3><?php _e('General', 'wp_lynx'); ?></h3>
+			<fieldset id="general" class="<?php echo $this->unique_prefix;?>_options">
+				<h3><?php _e('General', 'rel_perf'); ?></h3>
 				<table class="form-table">
 					<?php
-						$this->input_check(__('Shorten URL', 'wp_lynx'), 'short_url', __('Shorten URL using a URL shortening service such as tinyurl.com.', 'wp_lynx'));
-						$this->input_check(__('Default Style', 'wp_lynx'), 'global_style', __('Enable the default Lynx Prints styling on your blog.', 'wp_lynx'));
-						$this->input_text(__('Maximum Image Width', 'wp_lynx'), 'cache_max_x', '10', false, __('Maximum cached image width in pixels.', 'wp_lynx'));
-						$this->input_text(__('Maximum Image Height', 'wp_lynx'), 'cache_max_y', '10', false, __('Maximum cached image height in pixels.', 'wp_lynx'));
-						$this->input_check(__('Crop Image', 'wp_lynx'), 'cache_crop', __('Crop images in the cache to the above dimensions.', 'wp_lynx'));
+						$this->input_check(__('Shorten URL', 'rel_perf'), 'short_url', __('Shorten URL using a URL shortening service such as tinyurl.com.', 'rel_perf'));
+						$this->input_check(__('Default Style', 'rel_perf'), 'global_style', __('Enable the default Lynx Prints styling on your blog.', 'rel_perf'));
+						$this->input_text(__('Maximum Image Width', 'rel_perf'), 'cache_max_x', '10', false, __('Maximum cached image width in pixels.', 'rel_perf'));
+						$this->input_text(__('Maximum Image Height', 'rel_perf'), 'cache_max_y', '10', false, __('Maximum cached image height in pixels.', 'rel_perf'));
+						$this->input_check(__('Crop Image', 'rel_perf'), 'cache_crop', __('Crop images in the cache to the above dimensions.', 'rel_perf'));
 					?>
 					<tr valign="top">
 						<th scope="row">
-							<?php _e('Cached Image Format', 'wp_lynx'); ?>
+							<?php _e('Cached Image Format', 'rel_perf'); ?>
 						</th>
 						<td>
 							<?php
-								$this->input_radio('cache_type', 'original', __('Same as source format', 'wp_lynx'));
+								$this->input_radio('cache_type', 'original', __('Same as source format', 'rel_perf'));
 								$this->input_radio('cache_type', 'png', __('PNG'));
 								$this->input_radio('cache_type', 'jpeg', __('JPEG'));
 								$this->input_radio('cache_type', 'gif', __('GIF'));
 							?>
-							<span class="setting-description"><?php _e('The image format to use in the local image cache.', 'wp_lynx'); ?></span>
+							<span class="setting-description"><?php _e('The image format to use in the local image cache.', 'rel_perf'); ?></span>
 						</td>
 					</tr>
 					<?php
-						$this->input_text(__('Cache Image Quality', 'wp_lynx'), 'cache_quality', '10', false, __('Image quality when cached images are saved as JPEG.', 'wp_lynx'));
+						$this->input_text(__('Cache Image Quality', 'rel_perf'), 'cache_quality', '10', false, __('Image quality when cached images are saved as JPEG.', 'rel_perf'));
 					?>
 				</table>
 			</fieldset>
-			<fieldset id="images" class="llynx_options">
-				<h3><?php _e('Images', 'wp_lynx'); ?></h3>
+			<fieldset id="images" class="<?php echo $this->unique_prefix;?>_options">
+				<h3><?php _e('Images', 'rel_perf'); ?></h3>
 				<table class="form-table">
 					<?php
-						$this->input_text(__('Minimum Image Width', 'wp_lynx'), 'img_min_x', '10', false, __('Minimum width of images to scrape in pixels.', 'wp_lynx'));
-						$this->input_text(__('Minimum Image Height', 'wp_lynx'), 'img_min_y', '10', false, __('Minimum hieght of images to scrape in pixels.', 'wp_lynx'));
-						$this->input_text(__('Maximum Image Count', 'wp_lynx'), 'img_max_count', '10', false, __('Maximum number of images to scrape.', 'wp_lynx'));
-						$this->input_text(__('Maximum Image Scrape Size', 'wp_lynx'), 'img_max_range', '10', false, __('Maximum number of bytes to download when determining the dimensions of JPEG images.', 'wp_lynx'));
+						$this->input_text(__('Minimum Image Width', 'rel_perf'), 'img_min_x', '10', false, __('Minimum width of images to scrape in pixels.', 'rel_perf'));
+						$this->input_text(__('Minimum Image Height', 'rel_perf'), 'img_min_y', '10', false, __('Minimum hieght of images to scrape in pixels.', 'rel_perf'));
+						$this->input_text(__('Maximum Image Count', 'rel_perf'), 'img_max_count', '10', false, __('Maximum number of images to scrape.', 'rel_perf'));
+						$this->input_text(__('Maximum Image Scrape Size', 'rel_perf'), 'img_max_range', '10', false, __('Maximum number of bytes to download when determining the dimensions of JPEG images.', 'rel_perf'));
 					?>
 				</table>
 			</fieldset>
-			<fieldset id="text" class="llynx_options">
-				<h3><?php _e('Text', 'wp_lynx'); ?></h3>
+			<fieldset id="text" class="<?php echo $this->unique_prefix;?>_options">
+				<h3><?php _e('Text', 'rel_perf'); ?></h3>
 				<table class="form-table">
 					<?php
-						$this->input_text(__('Minimum Paragraph Length', 'wp_lynx'), 'p_min_length', '10', false, __('Minimum paragraph length to be scraped (in characters).', 'wp_lynx'));
-						$this->input_text(__('Maximum Paragraph Length', 'wp_lynx'), 'p_max_length', '10', false, __('Maximum paragraph length before it is cutt off (in characters).', 'wp_lynx'));
-						$this->input_text(__('Minimum Paragraph Count', 'wp_lynx'), 'p_max_count', '10', false, __('Maximum number of paragraphs to scrape.', 'wp_lynx'));
+						$this->input_text(__('Minimum Paragraph Length', 'rel_perf'), 'p_min_length', '10', false, __('Minimum paragraph length to be scraped (in characters).', 'rel_perf'));
+						$this->input_text(__('Maximum Paragraph Length', 'rel_perf'), 'p_max_length', '10', false, __('Maximum paragraph length before it is cutt off (in characters).', 'rel_perf'));
+						$this->input_text(__('Minimum Paragraph Count', 'rel_perf'), 'p_max_count', '10', false, __('Maximum number of paragraphs to scrape.', 'rel_perf'));
 					?>
 				</table>
 			</fieldset>
-			<fieldset id="advanced" class="llynx_options">
-				<h3><?php _e('Advanced', 'wp_lynx'); ?></h3>
+			<fieldset id="advanced" class="<?php echo $this->unique_prefix;?>_options">
+				<h3><?php _e('Advanced', 'rel_perf'); ?></h3>
 				<table class="form-table">
 					<?php
-						$this->textbox(__('Lynx Print Template', 'wp_lynx'), 'template', 3, false, __('Available tags: ', 'wp_lynx') . implode(', ', $this->template_tags));
-						$this->input_text(__('Timeout', 'wp_lynx'), 'curl_timeout', '10', false, __('Maximum time for scrape execution in seconds.', 'wp_lynx'));
-						$this->input_text(__('Useragent', 'wp_lynx'), 'curl_agent', '32', $this->opt['curl_embrowser'], __('Useragent to use during scrape execution.', 'wp_lynx'));
-						$this->input_check(__('Emulate Browser', 'wp_lynx'), 'curl_embrowser', __("Useragent will be exactly as the users's browser.", 'wp_lynx'));
+						$this->textbox(__('Lynx Print Template', 'rel_perf'), 'template', 3, false, __('Available tags: ', 'rel_perf') . implode(', ', $this->template_tags));
+						$this->input_text(__('Timeout', 'rel_perf'), 'curl_timeout', '10', false, __('Maximum time for scrape execution in seconds.', 'rel_perf'));
+						$this->input_text(__('Useragent', 'rel_perf'), 'curl_agent', '32', $this->opt['curl_embrowser'], __('Useragent to use during scrape execution.', 'rel_perf'));
+						$this->input_check(__('Emulate Browser', 'rel_perf'), 'curl_embrowser', __("Useragent will be exactly as the users's browser.", 'rel_perf'));
 					?>
 				</table>
 			</fieldset>
 			</div>
-			<p class="submit"><input type="submit" class="button-primary" name="llynx_admin_options" value="<?php esc_attr_e('Save Changes') ?>" /></p>
+			<p class="submit"><input type="submit" class="button-primary" name="<?php echo $this->unique_prefix;?>_admin_options" value="<?php esc_attr_e('Save Changes') ?>" /></p>
 		</form>
 		<?php $this->import_form(); ?>
 		</div>
 		<?php
-	}
-	/**
-	 * add_option
-	 *
-	 * This inserts the value into the option name, WPMU safe
-	 *
-	 * @param (string) key name where to save the value in $value
-	 * @param (mixed) value to insert into the options db
-	 * @return (bool)
-	 */
-	function add_option($key, $value)
-	{
-		return add_option($key, $value);
-	}
-	/**
-	 * delete_option
-	 *
-	 * This removes the option name, WPMU safe
-	 *
-	 * @param (string) key name of the option to remove
-	 * @return (bool)
-	 */
-	function delete_option($key)
-	{
-		return delete_option($key);
-	}
-	/**
-	 * update_option
-	 *
-	 * This updates the value into the option name, WPMU safe
-	 *
-	 * @param (string) key name where to save the value in $value
-	 * @param (mixed) value to insert into the options db
-	 * @return (bool)
-	 */
-	function update_option($key, $value)
-	{
-		return update_option($key, $value);
-	}
-	/**
-	 * get_option
-	 *
-	 * This grabs the the data from the db it is WPMU safe and can place the data 
-	 * in a HTML form safe manner.
-	 *
-	 * @param  (string) key name of the wordpress option to get
-	 * @return (mixed)  value of option
-	 */
-	function get_option($key)
-	{
-		return get_option($key);
 	}
 }
 //Let's make an instance of our object takes care of everything
