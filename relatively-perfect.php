@@ -2,7 +2,7 @@
 /*
 Plugin Name: Relatively Perfect
 Plugin URI: 
-Description:  
+Description: A relatively perfect events and calendar management plugin.
 Version: 0.0.1
 Author: Blind Tigers
 Author URI:
@@ -49,34 +49,7 @@ class RelativelyPerfect extends mtekk_admin
 	protected $identifier = 'rel_perf';
 	protected $unique_prefix = 'btrp';
 	protected $plugin_basename = '';
-	protected $llynx_scrape;
-	protected $opt = array(
-					'global_style' => true,
-					'p_max_count' => 5,
-					'p_min_length' => 120,
-					'p_max_length' => 180,
-					'img_max_count' => 20,
-					'img_min_x' => 50, 
-					'img_min_y' => 50,
-					'img_max_range' => 256,
-					'curl_agent' => 'WP Links Bot',
-					'curl_embrowser' => false,
-					'curl_timeout' => 3,
-					'cache_type' => 'original',
-					'cache_quality' => 80,
-					'cache_max_x' => 100,
-					'cache_max_y' => 100,
-					'cache_crop' => false,
-					'short_url' => false,
-					'template' => '<div class="llynx_print">%image%<div class="llynx_text"><a title="Go to %title%" href="%url%">%title%</a><small>%url%</small><span>%description%</span></div></div>',
-					'image_template' => '');
-	protected $template_tags = array(
-					'%url%',
-					'%short_url%',
-					'%image%',
-					'%title%',
-					'%description%'
-					);
+	protected $opt = array();
 	/**
 	 * __construct()
 	 * 
@@ -166,7 +139,6 @@ class RelativelyPerfect extends mtekk_admin
 			if(version_compare($version, '0.3.0', '<'))
 			{
 				$opts['short_url'] = false;
-				$opts['template'] = '<div class="llynx_print">%image%<div class="llynx_text"><a title="Go to %title%" href="%url%">%title%</a><small>%url%</small><span>%description%</span></div></div>';
 			}
 			//Save the passed in opts to the object's option array
 			$this->opt = $opts;
@@ -236,7 +208,7 @@ class RelativelyPerfect extends mtekk_admin
 			{
 				$temp .= '<br />' . $setting;
 			}
-			$this->message['updated fade'][] = $temp . '<br />' . sprintf(__('Please include this message in your %sbug report%s.', $this->identifier),'<a title="' . __('Go to the WP Lynx support post for your version.', $this->identifier) . '" href="http://mtekk.us/archives/wordpress/plugins-wordpress/wp-lynx-' . $this->version . '/#respond">', '</a>');
+			$this->message['updated fade'][] = $temp . '<br />' . sprintf(__('Please include this message in your %sbug report%s.', $this->identifier),'<a title="' . __('Go to the Relatively Perfect support post for your version.', $this->identifier) . '" href="http://urlgoeshere' . $this->version . '/#respond">', '</a>');
 		}
 		add_action('admin_notices', array($this, 'message'));
 	}
@@ -272,8 +244,7 @@ class RelativelyPerfect extends mtekk_admin
 	protected function _get_help_text()
 	{
 		return sprintf(__('Tips for the settings are located below select options. Please refer to the %sdocumentation%s for more information.', 'rel_perf'), 
-			'<a title="' . __('Go to the Links Lynx online documentation', 'rel_perf') . '" href="http://mtekk.us/code/wp-lynx/wp-lynx-doc/">', '</a>') .
-			sprintf(__('If you think you have found a bug, please include your WordPress version and details on how to reporduce the bug when you %sreport the issue%s.', $this->identifier),'<a title="' . __('Go to the WP Lynx support post for your version.', $this->identifier) . '" href="http://mtekk.us/archives/wordpress/plugins-wordpress/wp-lynx-' . $this->version . '/#respond">', '</a>') . '</p>';
+			'<a title="' . __('Go to the Relatively Perfect online documentation', 'rel_perf') . '" href="http://urlhere">', '</a>');
 	}
 	/**
 	 * admin_head
