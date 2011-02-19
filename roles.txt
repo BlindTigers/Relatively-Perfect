@@ -11,7 +11,8 @@ Kiko
 
 What we want done by next meeting:
 FrontEnd:
-
+Admin UX Design
+Admin UI Design
 
 
 
