@@ -244,11 +244,10 @@ class RelativelyPerfect extends mtekk_admin
 	{
 		?>
 <style type="text/css">
-/*WP Lynx Admin Styles*/
+/*Admin Styles*/
 .describe td{vertical-align:top;}
 .describe textarea{height:5em;}
 .A1B1{width:128px;float:left;}
-.llynx_thumb{height:138px;overflow:hidden;border-bottom:1px solid #dfdfdf;margin-bottom:5px;}
 </style>
 		<?php
 	}
@@ -309,13 +308,13 @@ class RelativelyPerfect extends mtekk_admin
 /* <![CDATA[ */
 	jQuery(function()
 	{
-		llynx_context_init();
-		llynx_tabulator_init();		
+		<?php echo $this->unique_prefix;?>_context_init();
+		<?php echo $this->unique_prefix;?>_tabulator_init();		
 	 });
 	/**
 	 * Tabulator Bootup
 	 */
-	function llynx_tabulator_init(){
+	function <?php echo $this->unique_prefix;?>_tabulator_init(){
 		if (!jQuery("#hasadmintabs").length) return;		
 		/* init markup for tabs */
 		jQuery('#hasadmintabs').prepend("<ul><\/ul>");
@@ -337,8 +336,8 @@ class RelativelyPerfect extends mtekk_admin
 	/**
 	 * context screen options for import/export
 	 */
-	 function llynx_context_init(){
-		if (!jQuery("#llynx_import_export_relocate").length) return;
+	 function <?php echo $this->unique_prefix;?>_context_init(){
+		if (!jQuery("#<?php echo $this->unique_prefix;?>_import_export_relocate").length) return;
 		jQuery('#screen-meta').prepend(
 				'<div id="screen-options-wrap" class="hidden"></div>'
 		);
@@ -347,8 +346,8 @@ class RelativelyPerfect extends mtekk_admin
 				'<a class="show-settings" id="show-settings-link" href="#screen-options"><?php printf('%s/%s/%s', __('Import', 'rel_perf'), __('Export', 'rel_perf'), __('Reset', 'rel_perf')); ?></a>' + 
 				'</div>'
 		);
-		var code = jQuery('#llynx_import_export_relocate').html();
-		jQuery('#llynx_import_export_relocate').html('');
+		var code = jQuery('#<?php echo $this->unique_prefix;?>_import_export_relocate').html();
+		jQuery('#<?php echo $this->unique_prefix;?>_import_export_relocate').html('');
 		code = code.replace(/h3>/gi, 'h5>');		
 		jQuery('#screen-options-wrap').prepend(code);		
 	 }
