@@ -34,7 +34,7 @@ function mtekk_admin_import_export_init(){
 	jQuery('#screen-meta').prepend('<div id="screen-options-wrap" class="hidden"></div>');
 	jQuery('#screen-meta-links').append(
 		'<div id="screen-options-link-wrap" class="hide-if-no-js screen-meta-toggle">' +
-		'<a class="show-settings" id="show-settings-link" href="#screen-options">' + objectL10n.import + '/' + objectL10n.export + '/' + objectL10n.reset +'</a></div>'
+		'<a class="show-settings" id="show-settings-link" href="#screen-options">' + objectL10n.mtad_import + '/' + objectL10n.mtad_export + '/' + objectL10n.mtad_reset +'</a></div>'
 	);
 	var code = jQuery('#mtekk_admin_import_export_relocate').html();
 	jQuery('#mtekk_admin_import_export_relocate').html('');

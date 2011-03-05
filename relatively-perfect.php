@@ -151,9 +151,9 @@ class RelativelyPerfect extends mtekk_admin
 		wp_enqueue_script('mtekk_admin_tabs');
 		//Load the translations for the tabs
 		wp_localize_script('mtekk_admin_tabs', 'objectL10n', array(
-			'import' => __('Import', $this->identifier),
-			'export' => __('Export', $this->identifier),
-			'reset' => __('Reset', $this->identifier),
+			'mtad_import' => __('Import', $this->identifier),
+			'mtad_export' => __('Export', $this->identifier),
+			'mtad_reset' => __('Reset', $this->identifier),
 		));
 	}
 	function admin_head()
