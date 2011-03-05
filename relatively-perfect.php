@@ -5,7 +5,7 @@ Plugin URI:
 Description: A relatively perfect events and calendar management plugin.
 Version: 0.0.1
 Author: Blind Tigers
-Author URI:
+Author URI: blindtigers.com
 */
 /*  
 	Copyright 2011 Blind Tigers
@@ -88,40 +88,7 @@ class RelativelyPerfect extends mtekk_admin
 		//If the user can not manage options we will die on them
 		if(!current_user_can($this->access_level))
 		{
-			wp_die(__('Insufficient privileges to proceed.', 'rel_perf'));
-		}
-	}
-	/** 
-	 * This sets up and upgrades the database settings, runs on every activation
-	 */
-	function install()
-	{
-		//Call our little security function
-		$this->security();
-		//Try retrieving the options from the database
-		$opts = get_option($this->unique_prefix . '_version');
-		//If there are no settings, copy over the default settings
-		if(!is_array($opts))
-		{
-			//Add the options
-			add_option($this->unique_prefix . '_options', $opts);
-			add_option($this->unique_prefix . '_options_bk', $opts, false);
-			//Add the version, no need to autoload the db version
-			add_option($this->unique_prefix . '_version', $this->version, false);
-		}
-		else
-		{
-			//Retrieve the database version
-			$db_version = get_option($this->unique_prefix . '_version');
-			if($this->version !== $db_version)
-			{
-				//Run the settings update script
-				$this->opts_upgrade($opts, $db_version);
-				//Always have to update the version
-				update_option($this->unique_prefix . '_version', $this->version);
-				//Store the options
-				update_option($this->unique_prefix . '_options', $this->opt);
-			}
+			wp_die(__('Insufficient privileges to proceed.', $this->identifier));
 		}
 	}
 	/**
@@ -143,85 +110,6 @@ class RelativelyPerfect extends mtekk_admin
 			//Save the passed in opts to the object's option array
 			$this->opt = $opts;
 		}
-	}
-	/**
-	 * ops_update
-	 * 
-	 * Updates the database settings from the webform
-	 */
-	function opts_update()
-	{
-		global $wp_taxonomies;
-		//Do some security related thigns as we are not using the normal WP settings API
-		$this->security();
-		//Do a nonce check, prevent malicious link/form problems
-		check_admin_referer($this->unique_prefix . '_options-options');
-		//Update local options from database
-		$this->opt = get_option($this->unique_prefix . '_options');
-		//Update our backup options
-		update_option($this->unique_prefix . '_options_bk', $this->opt);
-		//Grab our incomming array (the data is dirty)
-		$input = $_POST[$this->unique_prefix . '_options'];
-		//Loop through all of the existing options (avoids random setting injection)
-		foreach($this->opt as $option => $value)
-		{
-			//Handle all of our boolean options first
-			if($option == 'trends' || $option == 'backlink' || $option == 'cache_crop' || $option == 'global_style' || $option == 'curl_embrowser' || $option == 'short_url')
-			{
-				$this->opt[$option] = isset($input[$option]);
-			}
-			//Now handle all of the integers
-			else if(strpos($option, 'img_m') === 0 || strpos($option, 'p_m') === 0 || strpos($option, 'cache_m') === 0 || $option == 'cache_quality')
-			{
-				$this->opt[$option] = (int) stripslashes($input[$option]);
-			}
-			//Now handle anything that can't be blank
-			else if(strpos($option, 'curl_') === 0)
-			{
-				//Only save a new anchor if not blank
-				if(isset($input[$option]))
-				{
-					//Do excess slash removal sanitation
-					$this->opt[$option] = stripslashes($input[$option]);
-				}
-			}
-			//Now everything else
-			else
-			{
-				$this->opt[$option] = stripslashes($input[$option]);
-			}
-		}
-		//Commit the option changes
-		update_option($this->unique_prefix . '_options', $this->opt);
-		//Check if known settings match attempted save
-		if(count(array_diff_key($input, $this->opt)) == 0)
-		{
-			//Let the user know everything went ok
-			$this->message['updated fade'][] = __('Settings successfully saved.', $this->identifier) . $this->undo_anchor(__('Undo the options save.', $this->identifier));
-		}
-		else
-		{
-			//Let the user know the following were not saved
-			$this->message['updated fade'][] = __('Some settings were not saved.', $this->identifier) . $this->undo_anchor(__('Undo the options save.', $this->identifier));
-			$temp = __('The following settings were not saved:', $this->identifier);
-			foreach(array_diff_key($input, $this->opt) as $setting => $value)
-			{
-				$temp .= '<br />' . $setting;
-			}
-			$this->message['updated fade'][] = $temp . '<br />' . sprintf(__('Please include this message in your %sbug report%s.', $this->identifier),'<a title="' . __('Go to the Relatively Perfect support post for your version.', $this->identifier) . '" href="http://urlgoeshere' . $this->version . '/#respond">', '</a>');
-		}
-		add_action('admin_notices', array($this, 'message'));
-	}
-	function admin_head_style()
-	{
-		?>
-<style type="text/css">
-/*Admin Styles*/
-.describe td{vertical-align:top;}
-.describe textarea{height:5em;}
-.A1B1{width:128px;float:left;}
-</style>
-		<?php
 	}
 	/**
 	 * javascript
@@ -253,97 +141,35 @@ class RelativelyPerfect extends mtekk_admin
 	 * interface
 	 * 
 	 */
+	function admin_styles()
+	{
+		wp_enqueue_style('mtekk_admin_tabs');
+	}
+	function admin_scripts()
+	{
+		//Enqueue the admin tabs javascript
+		wp_enqueue_script('mtekk_admin_tabs');
+		//Load the translations for the tabs
+		wp_localize_script('mtekk_admin_tabs', 'objectL10n', array(
+			'import' => __('Import', $this->identifier),
+			'export' => __('Export', $this->identifier),
+			'reset' => __('Reset', $this->identifier),
+		));
+	}
 	function admin_head()
 	{	
-		// print style and script element (should go into head element) 
-		?>
-<style type="text/css">
-	/**
-	 * Tabbed Admin Page (CSS)
-	 * 
-	 * @see Breadcrumb NavXT (Wordpress Plugin)
-	 * @author Tom Klingenberg 
-	 * @colordef #c6d9e9 light-blue (older tabs border color, obsolete)
-	 * @colordef #dfdfdf light-grey (tabs border color)
-	 * @colordef #f9f9f9 very-light-grey (admin standard background color)
-	 * @colordef #fff    white (active tab background color)
-	 */
-#hasadmintabs ul.ui-tabs-nav {border-bottom:1px solid #dfdfdf; font-size:12px; height:29px; list-style-image:none; list-style-position:outside; list-style-type:none; margin:13px 0 0; overflow:visible; padding:0 0 0 8px;}
-#hasadmintabs ul.ui-tabs-nav li {display:block; float:left; line-height:200%; list-style-image:none; list-style-position:outside; list-style-type:none; margin:0; padding:0; position:relative; text-align:center; white-space:nowrap; width:auto;}
-#hasadmintabs ul.ui-tabs-nav li a {background:transparent none no-repeat scroll 0 50%; border-bottom:1px solid #dfdfdf; display:block; float:left; line-height:28px; padding:1px 13px 0; position:relative; text-decoration:none;}
-#hasadmintabs ul.ui-tabs-nav li.ui-tabs-selected a{-moz-border-radius-topleft:4px; -moz-border-radius-topright:4px;border:1px solid #dfdfdf; border-bottom-color:#f9f9f9; color:#333333; font-weight:normal; padding:0 12px;}
-#hasadmintabs ul.ui-tabs-nav a:focus, a:active {outline-color:-moz-use-text-color; outline-style:none; outline-width:medium;}
-#screen-options-wrap p.submit {margin:0; padding:0;}
-</style>
-<script type="text/javascript">
-/* <![CDATA[ */
-	jQuery(function()
-	{
-		<?php echo $this->unique_prefix;?>_context_init();
-		<?php echo $this->unique_prefix;?>_tabulator_init();		
-	 });
-	/**
-	 * Tabulator Bootup
-	 */
-	function <?php echo $this->unique_prefix;?>_tabulator_init(){
-		if (!jQuery("#hasadmintabs").length) return;		
-		/* init markup for tabs */
-		jQuery('#hasadmintabs').prepend("<ul><\/ul>");
-		jQuery('#hasadmintabs > fieldset').each(function(i){
-		    id      = jQuery(this).attr('id');
-		    caption = jQuery(this).find('h3').text();
-		    jQuery('#hasadmintabs > ul').append('<li><a href="#'+id+'"><span>'+caption+"<\/span><\/a><\/li>");
-		    jQuery(this).find('h3').hide();					    
-	    });	
-		/* init the tabs plugin */
-		jQuery("#hasadmintabs").tabs();
-		/* handler for opening the last tab after submit (compability version) */
-		jQuery('#hasadmintabs ul a').click(function(i){
-			var form   = jQuery('#llynx-options');
-			var action = form.attr("action").split('#', 1) + jQuery(this).attr('href');				
-			form.get(0).setAttribute("action", action);
-		});
+	
 	}
-	/**
-	 * context screen options for import/export
-	 */
-	 function <?php echo $this->unique_prefix;?>_context_init(){
-		if (!jQuery("#<?php echo $this->unique_prefix;?>_import_export_relocate").length) return;
-		jQuery('#screen-meta').prepend(
-				'<div id="screen-options-wrap" class="hidden"></div>'
-		);
-		jQuery('#screen-meta-links').append(
-				'<div id="screen-options-link-wrap" class="hide-if-no-js screen-meta-toggle">' +
-				'<a class="show-settings" id="show-settings-link" href="#screen-options"><?php printf('%s/%s/%s', __('Import', 'rel_perf'), __('Export', 'rel_perf'), __('Reset', 'rel_perf')); ?></a>' + 
-				'</div>'
-		);
-		var code = jQuery('#<?php echo $this->unique_prefix;?>_import_export_relocate').html();
-		jQuery('#<?php echo $this->unique_prefix;?>_import_export_relocate').html('');
-		code = code.replace(/h3>/gi, 'h5>');		
-		jQuery('#screen-options-wrap').prepend(code);		
-	 }
-/* ]]> */
-</script>
-<?php
-	} //function admin_head()
 	/**
 	 * admin_page
 	 * 
-	 * The administrative page for Links Lynx
+	 * The administrative page for Relatively Perfect
 	 * 
 	 */
 	function admin_page()
 	{
 		global $wp_taxonomies;
 		$this->security();
-		$uploadDir = wp_upload_dir();
-		if(!isset($uploadDir['path']) || !is_writable($uploadDir['path']))
-		{
-			//Let the user know their directory is not writable
-			$this->message['error'][] = __('WordPress uploads directory is not writable, thumbnails will be dissabled.', $this->identifier);
-			//Too late to use normal hook, directly display the message
-			$this->message();
-		}
 		$this->version_check(get_option($this->unique_prefix . '_version'));
 		?>
 		<div class="wrap"><h2><?php _e('Relatively Perfect Settings', 'rel_perf'); ?></h2>		
