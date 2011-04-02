@@ -25,12 +25,19 @@ Author URI: blindtigers.com
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 //Do a PHP version check, require 5.2 or newer
-if(version_compare(PHP_VERSION, '5.2.0', '<'))
+if(version_compare(phpversion(), '5.2.0', '<'))
 {
-	//Silently deactivate plugin, keeps admin usable
-	deactivate_plugins(plugin_basename(__FILE__), true);
-	//Spit out die messages
-	wp_die(sprintf(__('Your PHP version is too old, please upgrade to a newer version. Your version is %s, this plugin requires %s', 'rel_perf'), phpversion(), '5.2.0'));
+	//Only purpose of this function is to echo out the PHP version error
+	function bcn_phpold()
+	{
+		printf('<div class="error"><p>' . __('Your PHP version is too old, please upgrade to a newer version. Your version is %s, Relatively Perfect requires %s', 'rel_perf') . '</p></div>', phpversion(), '5.2.0');
+	}
+	//If we are in the admin, let's print a warning then return
+	if(is_admin())
+	{
+		add_action('admin_notices', 'btrp_phpold');
+	}
+	return;
 }
 //Include admin base class
 if(!class_exists('mtekk_admin'))
